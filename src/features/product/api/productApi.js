@@ -133,7 +133,7 @@ export async function fetchProducts(params = {}) {
   })
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/products?${query.toString()}`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products?${query.toString()}`,
     {
       cache: "no-store",
     },
@@ -152,7 +152,7 @@ export async function fetchProductFilterOptions() {
   }
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/products/filter-options`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/filter-options`,
     {
       cache: "no-store",
     },

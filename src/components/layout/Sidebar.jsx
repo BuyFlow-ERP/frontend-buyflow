@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useMemo, useState } from "react"
 import {
   Boxes,
   Building2,
@@ -18,6 +19,10 @@ import {
   UserRound,
   Warehouse,
 } from "lucide-react"
+import {
+  clearAuthSession,
+  getAuthSession,
+} from "@/features/auth/utils/authStorage"
 
 const menuGroups = [
   {
@@ -45,13 +50,13 @@ const menuGroups = [
   {
     label: "재고 관리",
     items: [
-      { label: "재고 현황", href: "/inventory", icon: Boxes, exact: true },
-      { label: "재고 이력", href: "/inventory/history", icon: History },
+      { label: "재고 현황", href: "#", icon: Boxes },
+      { label: "재고 이력", href: "#", icon: History },
     ],
   },
   {
     label: "설정",
-    items: [{ label: "사용자 및 권한 관리", href: "/system", icon: Settings }],
+    items: [{ label: "시스템 관리", href: "/admin/users", icon: Settings }],
   },
 ]
 
@@ -72,6 +77,30 @@ function Logo() {
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [session] = useState(() => getAuthSession())
+
+  const userLabel = useMemo(() => {
+    const user = session?.user
+
+    return user?.userName || user?.loginId || "사용자"
+  }, [session])
+
+  const roleLabel = useMemo(() => {
+    const roles = session?.roles ?? []
+
+    if (roles.includes("ADMIN")) {
+      return "관리자"
+    }
+
+    return roles[0] || session?.user?.status || "로그인 계정"
+  }, [session])
+
+  function handleLogout() {
+    clearAuthSession()
+    router.replace("/login")
+    router.refresh()
+  }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[220px] border-r border-slate-200 bg-white lg:flex lg:flex-col">
@@ -90,10 +119,10 @@ export default function Sidebar() {
             )}
 
             <div className="space-y-0.5">
-              {group.items.map(({ label, href, icon: Icon, exact = false }) => {
-                const active = exact
-                  ? pathname === href
-                  : pathname === href || pathname.startsWith(`${href}/`)
+              {group.items.map(({ label, href, icon: Icon }) => {
+                const active =
+                  href !== "#" &&
+                  (pathname === href || pathname.startsWith(`${href}/`))
 
                 return (
                   <Link
@@ -123,13 +152,23 @@ export default function Sidebar() {
 
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] font-semibold text-slate-700">
-              김철수 대리
+              {userLabel}
             </p>
 
-            <p className="text-[12px] text-emerald-500">● 물류운영팀</p>
+            <p className="truncate text-[12px] text-emerald-500">
+              ● {roleLabel}
+            </p>
           </div>
 
-          <LogOut size={14} className="text-slate-400" />
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            title="로그아웃"
+            aria-label="로그아웃"
+          >
+            <LogOut size={14} />
+          </button>
         </div>
       </div>
     </aside>
