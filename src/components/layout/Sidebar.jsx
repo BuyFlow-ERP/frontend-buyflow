@@ -10,19 +10,21 @@ import {
   ClipboardList,
   History,
   LayoutDashboard,
-  LogIn,
-  LogOut,
   Package,
   PackageCheck,
   Settings,
   ShoppingCart,
-  UserRound,
+  LogIn,
   Warehouse,
 } from "lucide-react"
+<<<<<<< HEAD
 import {
   clearAuthSession,
   getAuthSession,
 } from "@/features/auth/utils/authStorage"
+=======
+import SidebarAccount from "@/features/auth/components/SidebarAccount"
+>>>>>>> 4f9c7b07b196d47779f7048df65a566b50f79c8f
 
 const menuGroups = [
   {
@@ -50,8 +52,13 @@ const menuGroups = [
   {
     label: "재고 관리",
     items: [
+<<<<<<< HEAD
       { label: "재고 현황", href: "#", icon: Boxes },
       { label: "재고 이력", href: "#", icon: History },
+=======
+      { label: "재고 현황", href: "/stock", icon: Boxes, exact: true },
+      { label: "재고 이력", href: "/stock/history", icon: History },
+>>>>>>> 4f9c7b07b196d47779f7048df65a566b50f79c8f
     ],
   },
   {
@@ -145,6 +152,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="border-t border-slate-200 p-3">
+<<<<<<< HEAD
         <div className="flex items-center gap-3 rounded-md p-2 hover:bg-slate-50">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
             <UserRound size={16} />
@@ -170,6 +178,9 @@ export default function Sidebar() {
             <LogOut size={14} />
           </button>
         </div>
+=======
+        <SidebarAccount />
+>>>>>>> 4f9c7b07b196d47779f7048df65a566b50f79c8f
       </div>
     </aside>
   )

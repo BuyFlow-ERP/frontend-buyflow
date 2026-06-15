@@ -176,12 +176,21 @@ const breadcrumbRules = [
     ],
   },
   {
+<<<<<<< HEAD
     path: "/admin/users",
     crumbs: [
       { label: "설정", href: "/admin/users" },
       { label: "시스템 관리" },
       { label: "회원 승인 및 권한 관리" },
     ],
+=======
+    path: "/stock/history",
+    crumbs: [{ label: "재고 관리", href: "/stock" }, { label: "재고 이력" }],
+  },
+  {
+    path: "/stock",
+    crumbs: [{ label: "재고 관리", href: "/stock" }, { label: "재고 현황" }],
+>>>>>>> 4f9c7b07b196d47779f7048df65a566b50f79c8f
   },
 ]
 
