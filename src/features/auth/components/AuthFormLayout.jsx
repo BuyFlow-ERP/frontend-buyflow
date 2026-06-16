@@ -74,7 +74,9 @@ export function AuthMessage({ type = "info", children }) {
       : "border-blue-100 bg-blue-50 text-blue-700"
 
   return (
-    <p className={`rounded-md border px-3 py-2 text-[11px] font-medium ${style}`}>
+    <p
+      className={`rounded-md border px-3 py-2 text-[11px] font-medium ${style}`}
+    >
       {children}
     </p>
   )

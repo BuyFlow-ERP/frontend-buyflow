@@ -1,9 +1,10 @@
+import { apiFetch } from "@/lib/api/fetchClient"
 import {
   mockSuppliers,
   supplierFilterOptions,
 } from "@/features/supplier/data/mockSupplierData"
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_SUPPLIER_MOCK !== "false"
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_SUPPLIER_MOCK === "true"
 
 function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds))
@@ -78,6 +79,14 @@ function normalizeSupplierResponse(data) {
   }
 }
 
+function appendSupplierQuery(query, key, value) {
+  if (value === undefined || value === null || value === "" || value === "전체") {
+    return
+  }
+
+  query.set(key, key === "page" ? String(Number(value) - 1) : String(value))
+}
+
 export async function fetchSuppliers(params = {}) {
   if (USE_MOCK) {
     await wait(150)
@@ -87,25 +96,16 @@ export async function fetchSuppliers(params = {}) {
   const query = new URLSearchParams()
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value === "" || value === "전체") {
-      return
-    }
-
-    // 화면에서는 1페이지부터 표시하고,
-    // Spring Pageable에는 0페이지부터 전달합니다.
-    query.set(key, key === "page" ? String(Number(value) - 1) : String(value))
+    appendSupplierQuery(query, key, value)
   })
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/suppliers?${query.toString()}`,
+  const queryString = query.toString()
+  const data = await apiFetch(
+    `/api/suppliers${queryString ? `?${queryString}` : ""}`,
     { cache: "no-store" },
   )
 
-  if (!response.ok) {
-    throw new Error("공급업체 목록을 불러오지 못했습니다.")
-  }
-
-  return normalizeSupplierResponse(await response.json())
+  return normalizeSupplierResponse(data)
 }
 
 export async function fetchSupplierFilterOptions() {
@@ -113,16 +113,10 @@ export async function fetchSupplierFilterOptions() {
     return supplierFilterOptions
   }
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/suppliers/filter-options`,
+  return apiFetch(
+    "/api/suppliers/filter-options",
     { cache: "no-store" },
   )
-
-  if (!response.ok) {
-    throw new Error("공급업체 검색 조건을 불러오지 못했습니다.")
-  }
-
-  return response.json()
 }
 
 const SUPPLIER_TRADE_STATUS_LABELS = {
@@ -171,20 +165,10 @@ export async function fetchSupplierById(supplierId) {
     return normalizeSupplierDetailResponse(supplier)
   }
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/suppliers/${encodeURIComponent(
-      supplierId,
-    )}`,
+  const data = await apiFetch(
+    `/api/suppliers/${encodeURIComponent(supplierId)}`,
     { cache: "no-store" },
   )
 
-  if (response.status === 404) {
-    throw new Error("공급업체 정보를 찾을 수 없습니다.")
-  }
-
-  if (!response.ok) {
-    throw new Error("공급업체 상세 정보를 불러오지 못했습니다.")
-  }
-
-  return normalizeSupplierDetailResponse(await response.json())
+  return normalizeSupplierDetailResponse(data)
 }

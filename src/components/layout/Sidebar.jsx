@@ -1,8 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useMemo, useState } from "react"
+import { usePathname } from "next/navigation"
 import {
   Boxes,
   Building2,
@@ -10,21 +9,15 @@ import {
   ClipboardList,
   History,
   LayoutDashboard,
+  LogIn,
   Package,
   PackageCheck,
   Settings,
   ShoppingCart,
-  LogIn,
+  UserCog,
   Warehouse,
 } from "lucide-react"
-<<<<<<< HEAD
-import {
-  clearAuthSession,
-  getAuthSession,
-} from "@/features/auth/utils/authStorage"
-=======
 import SidebarAccount from "@/features/auth/components/SidebarAccount"
->>>>>>> 4f9c7b07b196d47779f7048df65a566b50f79c8f
 
 const menuGroups = [
   {
@@ -52,18 +45,16 @@ const menuGroups = [
   {
     label: "재고 관리",
     items: [
-<<<<<<< HEAD
-      { label: "재고 현황", href: "#", icon: Boxes },
-      { label: "재고 이력", href: "#", icon: History },
-=======
       { label: "재고 현황", href: "/stock", icon: Boxes, exact: true },
       { label: "재고 이력", href: "/stock/history", icon: History },
->>>>>>> 4f9c7b07b196d47779f7048df65a566b50f79c8f
     ],
   },
   {
     label: "설정",
-    items: [{ label: "시스템 관리", href: "/admin/users", icon: Settings }],
+    items: [
+      { label: "시스템 관리", href: "/system", icon: Settings, exact: true },
+      { label: "회원 승인 및 권한 관리", href: "/admin/users", icon: UserCog },
+    ],
   },
 ]
 
@@ -84,30 +75,6 @@ function Logo() {
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
-  const [session] = useState(() => getAuthSession())
-
-  const userLabel = useMemo(() => {
-    const user = session?.user
-
-    return user?.userName || user?.loginId || "사용자"
-  }, [session])
-
-  const roleLabel = useMemo(() => {
-    const roles = session?.roles ?? []
-
-    if (roles.includes("ADMIN")) {
-      return "관리자"
-    }
-
-    return roles[0] || session?.user?.status || "로그인 계정"
-  }, [session])
-
-  function handleLogout() {
-    clearAuthSession()
-    router.replace("/login")
-    router.refresh()
-  }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[220px] border-r border-slate-200 bg-white lg:flex lg:flex-col">
@@ -126,10 +93,10 @@ export default function Sidebar() {
             )}
 
             <div className="space-y-0.5">
-              {group.items.map(({ label, href, icon: Icon }) => {
-                const active =
-                  href !== "#" &&
-                  (pathname === href || pathname.startsWith(`${href}/`))
+              {group.items.map(({ label, href, icon: Icon, exact = false }) => {
+                const active = exact
+                  ? pathname === href
+                  : pathname === href || pathname.startsWith(`${href}/`)
 
                 return (
                   <Link
@@ -152,35 +119,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="border-t border-slate-200 p-3">
-<<<<<<< HEAD
-        <div className="flex items-center gap-3 rounded-md p-2 hover:bg-slate-50">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-            <UserRound size={16} />
-          </span>
-
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold text-slate-700">
-              {userLabel}
-            </p>
-
-            <p className="truncate text-[12px] text-emerald-500">
-              ● {roleLabel}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-            title="로그아웃"
-            aria-label="로그아웃"
-          >
-            <LogOut size={14} />
-          </button>
-        </div>
-=======
         <SidebarAccount />
->>>>>>> 4f9c7b07b196d47779f7048df65a566b50f79c8f
       </div>
     </aside>
   )

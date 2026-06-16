@@ -2,11 +2,10 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import {
-  findLoginId as findLoginIdRequest,
   getCurrentUser,
-  login as loginRequest,
+  loadMe,
+  loginAndSave,
   logout as logoutRequest,
-  resetPassword as resetPasswordRequest,
   signup as signupRequest,
 } from "@/features/auth/api/authApi"
 
@@ -21,16 +20,39 @@ export function AuthProvider({ children }) {
   const [authState, setAuthState] = useState(INITIAL_AUTH_STATE)
 
   useEffect(() => {
-    /*
-      localStorage와 sessionStorage는 서버 렌더링 중에 읽을 수 없습니다.
-      화면이 브라우저에 마운트된 뒤 저장된 로그인 세션을 복원합니다.
-    */
+    let ignore = false
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAuthState({
-      user: getCurrentUser(),
-      isAuthReady: true,
-    })
+    async function restoreSession() {
+      const savedUser = getCurrentUser()
+
+      if (!savedUser) {
+        if (!ignore) {
+          setAuthState({ user: null, isAuthReady: true })
+        }
+
+        return
+      }
+
+      try {
+        const freshUser = await loadMe()
+
+        if (!ignore) {
+          setAuthState({ user: freshUser, isAuthReady: true })
+        }
+      } catch {
+        logoutRequest()
+
+        if (!ignore) {
+          setAuthState({ user: null, isAuthReady: true })
+        }
+      }
+    }
+
+    restoreSession()
+
+    return () => {
+      ignore = true
+    }
   }, [])
 
   const auth = useMemo(
@@ -39,15 +61,21 @@ export function AuthProvider({ children }) {
       isLoggedIn: Boolean(authState.user),
       isAuthReady: authState.isAuthReady,
 
-      login(values) {
-        const nextUser = loginRequest(values)
+      async login(values) {
+        const session = await loginAndSave(
+          {
+            loginId: values.loginId,
+            password: values.password,
+          },
+          values.remember ?? true,
+        )
 
         setAuthState({
-          user: nextUser,
+          user: session.user,
           isAuthReady: true,
         })
 
-        return nextUser
+        return session.user
       },
 
       logout() {
@@ -60,8 +88,17 @@ export function AuthProvider({ children }) {
       },
 
       signup: signupRequest,
-      findLoginId: findLoginIdRequest,
-      resetPassword: resetPasswordRequest,
+
+      async refresh() {
+        const freshUser = await loadMe()
+
+        setAuthState({
+          user: freshUser,
+          isAuthReady: true,
+        })
+
+        return freshUser
+      },
     }),
     [authState],
   )
@@ -73,7 +110,7 @@ export function useAuth() {
   const context = useContext(AuthContext)
 
   if (!context) {
-    throw new Error("useAuth는 AuthProvider 내부에서 사용해야 합니다.")
+    throw new Error("useAuth must be used within AuthProvider.")
   }
 
   return context

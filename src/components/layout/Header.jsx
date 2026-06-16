@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronDown, ChevronRight, Plus, Search, Truck } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 
 const breadcrumbRules = [
   { path: "/dashboard", crumbs: [{ label: "대시보드" }] },
@@ -60,13 +60,6 @@ const breadcrumbRules = [
       { label: "구매 및 입고", href: "/approvals" },
       { label: "승인 관리", href: "/approvals" },
       { label: "승인 상세" },
-    ],
-  },
-  {
-    path: "/approvals",
-    crumbs: [
-      { label: "구매 및 입고", href: "/approvals" },
-      { label: "승인 관리" },
     ],
   },
   {
@@ -175,22 +168,28 @@ const breadcrumbRules = [
       },
     ],
   },
+
   {
-<<<<<<< HEAD
-    path: "/admin/users",
-    crumbs: [
-      { label: "설정", href: "/admin/users" },
-      { label: "시스템 관리" },
-      { label: "회원 승인 및 권한 관리" },
-    ],
-=======
     path: "/stock/history",
     crumbs: [{ label: "재고 관리", href: "/stock" }, { label: "재고 이력" }],
   },
   {
     path: "/stock",
     crumbs: [{ label: "재고 관리", href: "/stock" }, { label: "재고 현황" }],
->>>>>>> 4f9c7b07b196d47779f7048df65a566b50f79c8f
+  },
+  {
+    path: "/admin/users",
+    crumbs: [
+      { label: "설정", href: "/admin/users" },
+      { label: "회원 승인 및 권한 관리" },
+    ],
+  },
+  {
+    path: "/system",
+    crumbs: [
+      { label: "설정", href: "/system" },
+      { label: "시스템 관리" },
+    ],
   },
 ]
 

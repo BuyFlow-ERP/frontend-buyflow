@@ -1,19 +1,16 @@
 import Header from "@/components/layout/Header"
 import Sidebar from "@/components/layout/Sidebar"
-import AuthGate from "@/features/auth/components/AuthGate"
 
 export default function DashboardLayout({ children }) {
   return (
-    <AuthGate>
-      <div className="erp-dashboard min-h-screen bg-[#f8fafc] text-slate-800">
-        <Sidebar />
+    <div className="erp-dashboard min-h-screen bg-[#f8fafc] text-slate-800">
+      <Sidebar />
 
-        <div className="lg:pl-[220px]">
-          <Header />
+      <div className="lg:pl-[220px]">
+        <Header />
 
-          <main className="px-3 py-4 lg:px-4">{children}</main>
-        </div>
+        <main className="px-3 py-4 lg:px-4">{children}</main>
       </div>
-    </AuthGate>
+    </div>
   )
 }

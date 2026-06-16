@@ -2,8 +2,8 @@ import "./globals.css"
 import { AuthProvider } from "@/features/auth/context/AuthContext"
 
 export const metadata = {
-  title: "BuyFlow ERP",
-  description: "구매 요청, 승인, 발주, 입고를 관리하는 구매관리 ERP",
+  title: "물류 ERP 시스템",
+  description: "입고 및 재고 관리 시스템",
 }
 
 export default function RootLayout({ children }) {

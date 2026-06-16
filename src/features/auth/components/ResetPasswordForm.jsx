@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import {
   confirmPasswordReset,
@@ -23,6 +24,7 @@ const initialForm = {
 }
 
 export default function ResetPasswordForm() {
+  const router = useRouter()
   const [form, setForm] = useState(initialForm)
   const [verification, setVerification] = useState(null)
   const [resetProof, setResetProof] = useState(null)
@@ -57,7 +59,9 @@ export default function ResetPasswordForm() {
       })
 
       setVerification(result)
-      setMessage("인증번호가 발송되었습니다. 개발 중에는 백엔드 콘솔의 [DEV MAIL] 로그를 확인하세요.")
+      setMessage(
+        "인증번호가 발송되었습니다. 개발 중에는 백엔드 콘솔의 [DEV MAIL] 로그를 확인하세요.",
+      )
     } catch (requestError) {
       setError(requestError.message || "인증번호 요청에 실패했습니다.")
     } finally {
@@ -102,10 +106,9 @@ export default function ResetPasswordForm() {
       setForm(initialForm)
       setVerification(null)
       setResetProof(null)
-      setMessage("비밀번호가 재설정되었습니다. 새 비밀번호로 로그인하세요.")
+      router.replace("/login")
     } catch (confirmError) {
       setError(confirmError.message || "비밀번호 재설정에 실패했습니다.")
-    } finally {
       setLoading(false)
     }
   }

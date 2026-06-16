@@ -107,9 +107,7 @@ export default function LoginForm() {
           <header className="flex flex-col items-center text-center">
             <CubeLogo />
 
-            <h1 className="mt-5 text-[21px] font-bold">
-              BuyFlow ERP 시스템
-            </h1>
+            <h1 className="mt-5 text-[21px] font-bold">BuyFlow ERP 시스템</h1>
 
             <p className="mt-1 text-[11px] font-medium text-blue-700">
               구매 요청부터 승인, 발주, 입고까지 관리합니다.
