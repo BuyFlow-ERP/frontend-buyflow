@@ -320,3 +320,7 @@ export async function createStockAdjustment(payload) {
 
   return response.json()
 }
+
+export async function fetchStocks(params = {}) {
+  return fetchInventories(params)
+}

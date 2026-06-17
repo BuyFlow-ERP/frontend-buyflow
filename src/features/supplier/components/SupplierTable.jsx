@@ -1,7 +1,10 @@
-import { SUPPLIER_TABLE_HEADERS } from "@/features/supplier/utils/supplierManagementUtils"
+import {
+  SUPPLIER_TABLE_HEADERS,
+  SUPPLIER_TRADE_STATUS,
+} from "@/features/supplier/utils/supplierManagementUtils"
 
 function StatusBadge({ status }) {
-  const isActive = status === "거래중"
+  const isActive = status === SUPPLIER_TRADE_STATUS.ACTIVE
 
   return (
     <span
@@ -9,7 +12,7 @@ function StatusBadge({ status }) {
         isActive ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500"
       }`}
     >
-      {status}
+      {status || "-"}
     </span>
   )
 }
@@ -51,29 +54,29 @@ function SupplierRow({ supplier, onDetail }) {
       className="cursor-pointer border-t border-slate-100 text-slate-600 transition hover:bg-blue-50/40 focus:bg-blue-50/40 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-200"
     >
       <td className="whitespace-nowrap px-3 py-2.5 font-semibold text-blue-600">
-        {supplier.code}
+        {supplier.code || "-"}
       </td>
 
       <td className="min-w-[145px] px-3 py-2.5 font-semibold text-slate-700">
-        {supplier.name}
+        {supplier.name || "-"}
       </td>
 
       <td className="whitespace-nowrap px-3 py-2.5 text-slate-600">
-        {supplier.businessNumber}
+        {supplier.businessNumber || "-"}
       </td>
 
-      <td className="whitespace-nowrap px-3 py-2.5">{supplier.manager}</td>
+      <td className="whitespace-nowrap px-3 py-2.5">{supplier.manager || "-"}</td>
 
       <td className="whitespace-nowrap px-3 py-2.5 text-slate-600">
-        {supplier.phone}
+        {supplier.phone || "-"}
       </td>
 
       <td className="whitespace-nowrap px-3 py-2.5 text-slate-600">
-        {supplier.email}
+        {supplier.email || "-"}
       </td>
 
       <td className="min-w-[180px] px-3 py-2.5 text-slate-600">
-        {supplier.address}
+        {supplier.address || "-"}
       </td>
 
       <td className="whitespace-nowrap px-3 py-2.5">
@@ -81,7 +84,7 @@ function SupplierRow({ supplier, onDetail }) {
       </td>
 
       <td className="whitespace-nowrap px-3 py-2.5 text-slate-600">
-        {supplier.registeredAt}
+        {supplier.registeredAt || "-"}
       </td>
     </tr>
   )
@@ -98,9 +101,7 @@ export default function SupplierTable({ suppliers, loading, error, onDetail }) {
     }
 
     if (suppliers.length === 0) {
-      return (
-        <TableMessage>검색 조건에 해당하는 공급업체가 없습니다.</TableMessage>
-      )
+      return <TableMessage>검색 조건에 해당하는 공급업체가 없습니다.</TableMessage>
     }
 
     return suppliers.map((supplier) => (

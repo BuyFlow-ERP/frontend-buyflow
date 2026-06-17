@@ -73,7 +73,7 @@ export default function StockHistoryManagement({ initialFilters }) {
     resetFilters,
     movePage,
     changePageSize,
-  } = useHistoryManagement(initialFilters)
+  } = useStockHistoryManagement(initialFilters)
 
   return (
     <div className="w-full">

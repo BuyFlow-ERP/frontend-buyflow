@@ -47,18 +47,16 @@ export default function SupplierSearchForm({
       <div className="mt-3 grid gap-x-3 gap-y-2.5 md:grid-cols-2 xl:grid-cols-4">
         <label>
           <FieldLabel>공급업체 코드</FieldLabel>
-
           <input
             value={filters.supplierCode}
             onChange={(event) => onChange("supplierCode", event.target.value)}
-            placeholder="예: SUP-001"
+            placeholder="예: SUP-2026-0001"
             className={INPUT_CLASS_NAME}
           />
         </label>
 
         <label>
           <FieldLabel>공급업체명</FieldLabel>
-
           <input
             value={filters.supplierName}
             onChange={(event) => onChange("supplierName", event.target.value)}
@@ -69,18 +67,16 @@ export default function SupplierSearchForm({
 
         <label>
           <FieldLabel>담당자</FieldLabel>
-
           <input
             value={filters.manager}
             onChange={(event) => onChange("manager", event.target.value)}
-            placeholder="담당자 성명"
+            placeholder="담당자명"
             className={INPUT_CLASS_NAME}
           />
         </label>
 
         <label>
           <FieldLabel>거래 상태</FieldLabel>
-
           <SelectField
             value={filters.tradeStatus}
             options={filterOptions.tradeStatuses}
@@ -93,7 +89,7 @@ export default function SupplierSearchForm({
         <button
           type="button"
           onClick={onReset}
-          className="flex h-10 items-center gap-1.5 rounded-md border border-slate-200 px-4 text-[13px] font-semibold text-slate-600 transition hover:bg-slate-50"
+          className="inline-flex h-10 items-center gap-1.5 rounded-md border border-slate-200 px-4 text-[13px] font-semibold text-slate-600 transition hover:bg-slate-50"
         >
           <RefreshCcw size={15} />
           초기화
@@ -101,7 +97,7 @@ export default function SupplierSearchForm({
 
         <button
           type="submit"
-          className="flex h-10 items-center gap-1.5 rounded-md bg-blue-600 px-5 text-[13px] font-semibold text-white transition hover:bg-blue-700"
+          className="inline-flex h-10 items-center gap-1.5 rounded-md bg-blue-600 px-5 text-[13px] font-semibold text-white transition hover:bg-blue-700"
         >
           <Search size={15} />
           검색

@@ -17,7 +17,7 @@ function PageIconButton({ children, label, disabled, onClick }) {
 }
 
 export default function SupplierPagination({ pagination, onMovePage }) {
-  const { page, totalPages } = pagination
+  const { page, totalPages, totalElements, size } = pagination
 
   const pageNumbers = useMemo(
     () => createPageNumbers(page, totalPages),
@@ -25,7 +25,12 @@ export default function SupplierPagination({ pagination, onMovePage }) {
   )
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 px-4 py-3 text-[13px] text-slate-500">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 text-[13px] text-slate-500">
+      <span>
+        총 <strong className="text-slate-700">{totalElements}</strong>건 ·{" "}
+        {size}건씩 보기
+      </span>
+
       <div className="flex items-center gap-1">
         <PageIconButton
           label="이전 페이지"
@@ -39,7 +44,7 @@ export default function SupplierPagination({ pagination, onMovePage }) {
           if (typeof pageNumber !== "number") {
             return (
               <span key={pageNumber} className="px-1 text-slate-400">
-                ···
+                ...
               </span>
             )
           }

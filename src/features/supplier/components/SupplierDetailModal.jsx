@@ -12,9 +12,10 @@ import {
   UserRound,
   X,
 } from "lucide-react"
+import { SUPPLIER_TRADE_STATUS } from "@/features/supplier/utils/supplierManagementUtils"
 
 function StatusBadge({ status }) {
-  const isActive = status === "거래중"
+  const isActive = status === SUPPLIER_TRADE_STATUS.ACTIVE
 
   return (
     <span
@@ -43,6 +44,7 @@ function DetailItem({ label, value, icon: Icon, fullWidth = false }) {
 export default function SupplierDetailModal({
   open,
   supplier,
+  canEdit = false,
   onClose,
   onEdit,
 }) {
@@ -52,7 +54,6 @@ export default function SupplierDetailModal({
     }
 
     const previousOverflow = document.body.style.overflow
-
     document.body.style.overflow = "hidden"
 
     function handleEscape(event) {
@@ -116,7 +117,7 @@ export default function SupplierDetailModal({
               </p>
 
               <p className="mt-1 text-[16px] font-bold text-blue-600">
-                {supplier.code}
+                {supplier.code || "-"}
               </p>
             </div>
 
@@ -124,11 +125,7 @@ export default function SupplierDetailModal({
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <DetailItem
-              label="공급업체명"
-              value={supplier.name}
-              icon={Building2}
-            />
+            <DetailItem label="공급업체명" value={supplier.name} icon={Building2} />
 
             <DetailItem
               label="사업자 등록번호"
@@ -136,14 +133,8 @@ export default function SupplierDetailModal({
               icon={FileText}
             />
 
-            <DetailItem
-              label="담당자"
-              value={supplier.manager}
-              icon={UserRound}
-            />
-
+            <DetailItem label="담당자" value={supplier.manager} icon={UserRound} />
             <DetailItem label="연락처" value={supplier.phone} icon={Phone} />
-
             <DetailItem label="이메일" value={supplier.email} icon={Mail} />
 
             <DetailItem
@@ -170,14 +161,16 @@ export default function SupplierDetailModal({
             닫기
           </button>
 
-          <button
-            type="button"
-            onClick={() => onEdit(supplier)}
-            className="flex h-10 items-center gap-1.5 rounded-md bg-blue-600 px-4 text-[13px] font-semibold text-white transition hover:bg-blue-700"
-          >
-            <Pencil size={14} />
-            수정하기
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => onEdit(supplier)}
+              className="inline-flex h-10 items-center gap-1.5 rounded-md bg-blue-600 px-4 text-[13px] font-semibold text-white transition hover:bg-blue-700"
+            >
+              <Pencil size={14} />
+              수정하기
+            </button>
+          )}
         </footer>
       </section>
     </div>
