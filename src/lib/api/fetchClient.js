@@ -1,6 +1,6 @@
 import { clearAuthSession, getAccessToken } from "@/utils/authStorage"
 
-const DEFAULT_API_BASE_URL = "http://localhost:8080"
+const DEFAULT_API_BASE_URL = ""
 
 function getApiBaseUrl() {
   return (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(
@@ -15,8 +15,9 @@ function createUrl(path) {
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`
+  const baseUrl = getApiBaseUrl()
 
-  return `${getApiBaseUrl()}${normalizedPath}`
+  return baseUrl ? `${baseUrl}${normalizedPath}` : normalizedPath
 }
 
 async function parseJson(response) {

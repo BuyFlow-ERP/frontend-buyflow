@@ -3,6 +3,8 @@
 // 🚀 1. lucide-react에서 Paperclip(클립 모양 아이콘)을 추가로 불러옵니다.
 import { Ban, Pencil, X, Paperclip } from "lucide-react"
 
+import { getApiUrl } from "@/lib/api/fetchClient"
+
 import {
   canCancelPurchaseOrder,
   canEditPurchaseOrder,
@@ -100,7 +102,11 @@ export default function PurchaseOrderDetailModal({
 
             <div>
               <dt className="text-[12px] text-slate-400">발주 담당자</dt>
-              <dd>{order.orderManager || order.userName || "지정된 담당자가 없습니다."}</dd>
+              <dd>
+                {order.orderManager ||
+                  order.userName ||
+                  "지정된 담당자가 없습니다."}
+              </dd>
             </div>
 
             <div>
@@ -148,10 +154,13 @@ export default function PurchaseOrderDetailModal({
               {currentStatus === "CANCELED" ? "취소 사유" : "비고"}
             </h3>
             <p className="text-[13px] text-slate-700 whitespace-pre-wrap leading-relaxed min-h-[20px]">
-              {order.memo && order.memo.trim() !== "" ? order.memo : 
+              {order.memo && order.memo.trim() !== "" ? (
+                order.memo
+              ) : (
                 <span className="text-[13px] text-slate-400 italic leading-relaxed">
                   등록된 내용이 없습니다.
-                </span>}
+                </span>
+              )}
             </p>
           </div>
 
@@ -164,7 +173,9 @@ export default function PurchaseOrderDetailModal({
               {order.attachmentId ? (
                 <a
                   // TODO: 환경에 맞게 다운로드 API 엔드포인트 URL을 맞춰주세요!
-                  href={`http://localhost:8080/api/orders/attachments/download/${order.attachmentId}`}
+                  href={getApiUrl(
+                    `/api/orders/attachments/download/${order.attachmentId}`,
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-blue-600 shadow-sm transition hover:bg-blue-50 hover:border-blue-300"

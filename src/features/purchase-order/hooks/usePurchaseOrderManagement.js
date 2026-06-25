@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 
+import { getApiUrl } from "@/lib/api/fetchClient"
+
 import {
   cancelPurchaseOrder,
   fetchPurchaseOrders,
@@ -50,20 +52,20 @@ export default function usePurchaseOrderManagement() {
     async function loadFormOptions() {
       try {
         // 성공하는 URL로 바꿔보세요
-        const res = await fetch("http://localhost:8080/api/orders/form-options", {
+        const res = await fetch(getApiUrl("/api/orders/form-options"), {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
           credentials: "include",
-        });
+        })
 
         if (!res.ok) {
-          console.error("Status:", res.status);
-          throw new Error(`HTTP ${res.status}`);
+          console.error("Status:", res.status)
+          throw new Error(`HTTP ${res.status}`)
         }
-        
-        const response = await res.json();
+
+        const response = await res.json()
 
         if (ignore) {
           return
@@ -71,16 +73,23 @@ export default function usePurchaseOrderManagement() {
 
         setFilterOptions({
           suppliers: response.suppliers || [],
-          statuses: response.statuses || ["전체", "PENDING", "APPROVED", "CANCELLED"],
-        });
+          statuses: response.statuses || [
+            "전체",
+            "PENDING",
+            "APPROVED",
+            "CANCELLED",
+          ],
+        })
       } catch (err) {
-        console.error("폼 옵션 로딩 실패:", err);
+        console.error("폼 옵션 로딩 실패:", err)
       }
     }
 
     void loadFormOptions()
 
-    return () => { ignore = true; }
+    return () => {
+      ignore = true
+    }
   }, [])
 
   useEffect(() => {
@@ -95,37 +104,42 @@ export default function usePurchaseOrderManagement() {
           ...appliedFilters,
           page: pagination.page - 1,
           size: pagination.size,
-        };
+        }
 
-        const data = await fetchPurchaseOrders(params);
+        const data = await fetchPurchaseOrders(params)
 
         if (!ignore) {
-          const realContentList = data.content || data.items || data || [];
-          setOrders(realContentList);
+          const realContentList = data.content || data.items || data || []
+          setOrders(realContentList)
 
           const newPagination = {
             page: data.number !== undefined ? data.number + 1 : pagination.page,
             size: data.size ?? data.pagination?.size ?? pagination.size,
-            totalElements: data.totalElements ?? data.pagination?.totalElements ?? realContentList.length,
+            totalElements:
+              data.totalElements ??
+              data.pagination?.totalElements ??
+              realContentList.length,
             totalPages: data.totalPages ?? data.pagination?.totalPages ?? 1,
-          };
+          }
 
-          setPagination(newPagination);
+          setPagination(newPagination)
         }
       } catch (requestError) {
-        console.error("목록 로드 실패:", requestError);
+        console.error("목록 로드 실패:", requestError)
         if (!ignore) {
-          setError(requestError.message || "발주 목록을 불러오지 못했습니다.");
+          setError(requestError.message || "발주 목록을 불러오지 못했습니다.")
         }
       } finally {
-        if (!ignore) setLoading(false);
+        if (!ignore) setLoading(false)
       }
     }
 
-    loadOrders();
+    loadOrders()
 
-    return () => { ignore = true; };
-  }, [appliedFilters, refreshKey, pagination.page, pagination.size]);
+    return () => {
+      ignore = true
+    }
+  }, [appliedFilters, refreshKey, pagination.page, pagination.size])
 
   function updateFilter(name, value) {
     setDraftFilters((currentFilters) => ({
@@ -151,19 +165,19 @@ export default function usePurchaseOrderManagement() {
   }
 
   function movePage(page) {
-    const newPage = Math.max(1, Math.min(page, pagination.totalPages || 1));
+    const newPage = Math.max(1, Math.min(page, pagination.totalPages || 1))
 
-    setPagination(prev => ({ ...prev, page: newPage }));
-    setRefreshKey(k => k + 1);   // 강제 트리거
+    setPagination((prev) => ({ ...prev, page: newPage }))
+    setRefreshKey((k) => k + 1) // 강제 트리거
   }
 
   function changePageSize(size) {
-    setPagination(prev => ({
+    setPagination((prev) => ({
       ...prev,
       page: 1,
       size: Number(size),
-    }));
-    setRefreshKey(k => k + 1);
+    }))
+    setRefreshKey((k) => k + 1)
   }
 
   function openDetail(order) {
@@ -192,7 +206,10 @@ export default function usePurchaseOrderManagement() {
     setCanceling(true)
 
     try {
-      await cancelPurchaseOrder(cancelTarget.id || cancelTarget.orderId, cancelReason)
+      await cancelPurchaseOrder(
+        cancelTarget.id || cancelTarget.orderId,
+        cancelReason,
+      )
 
       setCancelTarget(null)
       setSelectedOrderId(null)
