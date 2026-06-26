@@ -32,6 +32,7 @@ export default function PurchaseRequestManagement() {
   async function handleDownload() {
     try {
       const excelApiUrl = getApiUrl("/api/purchase-requests/excel")
+
       const response = await fetch(excelApiUrl, {
         method: "GET",
       })
