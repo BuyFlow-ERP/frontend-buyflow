@@ -193,7 +193,7 @@ export default function useWarehouseManagement() {
 
   async function removeWarehouse(warehouse) {
     const confirmed = window.confirm(
-      `${warehouse.name} 창고를 삭제하시겠습니까?`,
+      `${warehouse.name} 창고를 '사용 중지' 처리하시겠습니까?\n(과거 발주 내역 보존을 위해 완전히 삭제되지 않고 미사용 상태로 변경됩니다.)`,
     )
 
     if (!confirmed) {
@@ -201,11 +201,15 @@ export default function useWarehouseManagement() {
     }
 
     try {
-      await deleteWarehouse(warehouse.id)
+      await deleteWarehouse(warehouse.code)
+      
       setDetailWarehouse(null)
       refreshWarehouses()
+      
+      window.alert("사용 중지 처리되었습니다.")
     } catch (requestError) {
-      window.alert(requestError.message || "창고 정보를 삭제하지 못했습니다.")
+      const serverMessage = requestError.response?.data?.message || requestError.response?.data;
+      window.alert(serverMessage || "상태를 변경하지 못했습니다.")
     }
   }
 

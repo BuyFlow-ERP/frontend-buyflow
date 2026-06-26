@@ -18,8 +18,6 @@ export default function PurchaseRequestManagement() {
     summary,
     requests,
     pagination,
-    selectedIds,
-    allCurrentRowsSelected,
     loading,
     error,
     updateFilter,
@@ -29,14 +27,11 @@ export default function PurchaseRequestManagement() {
     movePage,
     exportRequests,
     deleteRequest,
-    toggleAllRows,
-    toggleRow,
   } = usePurchaseRequestManagement()
 
   async function handleDownload() {
     try {
       const excelApiUrl = getApiUrl("/api/purchase-requests/excel")
-
       const response = await fetch(excelApiUrl, {
         method: "GET",
       })
@@ -146,10 +141,6 @@ export default function PurchaseRequestManagement() {
             requests={requests}
             loading={loading}
             error={error}
-            selectedIds={selectedIds}
-            allCurrentRowsSelected={allCurrentRowsSelected}
-            onToggleAll={toggleAllRows}
-            onToggleRow={toggleRow}
             onDeleteRequest={handleDeleteRequest}
           />
 

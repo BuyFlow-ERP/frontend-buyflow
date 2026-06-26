@@ -20,10 +20,48 @@ const PERMISSION_GROUP_LABELS = {
   SYSTEM: "설정",
 }
 
+const USER_ROLE_LABELS = {
+  ADMIN: "시스템 관리자",
+  TEAM_MANAGER: "부서 팀장",
+  VIEWER: "조회 전용",
+}
+
+const USER_ROLE_FILTER_OPTIONS = [
+  { id: "filter:department-member", name: "부서원", departmentAuthorized: "Y" },
+  {
+    id: "filter:viewer",
+    name: USER_ROLE_LABELS.VIEWER,
+    roleCode: "VIEWER",
+    departmentAuthorized: "N",
+  },
+  {
+    id: "filter:team-manager",
+    name: USER_ROLE_LABELS.TEAM_MANAGER,
+    roleCode: "TEAM_MANAGER",
+  },
+  {
+    id: "filter:admin",
+    name: USER_ROLE_LABELS.ADMIN,
+    roleCode: "ADMIN",
+  },
+]
+
 export const SYSTEM_ADMIN_PERMISSION_PROFILE_ID = "role:ADMIN"
 
 export function isSystemAdminPermissionProfile(profileId) {
   return profileId === SYSTEM_ADMIN_PERMISSION_PROFILE_ID
+}
+
+export function isRolePermissionProfile(profileId) {
+  return String(profileId ?? "").startsWith("role:")
+}
+
+export function roleCodeFromPermissionProfileId(profileId) {
+  if (!isRolePermissionProfile(profileId)) {
+    return ""
+  }
+
+  return normalizeRoleCode(String(profileId).replace(/^role:/, ""))
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -104,6 +142,7 @@ function adaptUser(item) {
   const roles = item.roles ?? []
   const primary = pickPrimaryRole(roles)
   const roleIds = roles.map((role) => role.roleCode).filter(Boolean)
+  const departmentAuthorized = item.departmentAuthorized ?? true
 
   return {
     id: user.userId,
@@ -114,11 +153,27 @@ function adaptUser(item) {
     position: rankLabel(user),
     roleId: primary?.roleCode ?? "",
     roleIds,
-    roleName: roles.length ? roles.map((role) => role.roleName).join(", ") : "-",
-    departmentAuthorized: item.departmentAuthorized ?? true,
+    roleName: displayUserRoleName(roles, departmentAuthorized),
+    departmentAuthorized,
     activeStatus: statusLabel(user),
     registeredAt: String(user.createdAt ?? "").slice(0, 10),
   }
+}
+
+function displayUserRoleName(roles, departmentAuthorized) {
+  const roleCodes = new Set(
+    (roles ?? []).map((role) => normalizeRoleCode(role.roleCode)),
+  )
+  const labels = []
+
+  if (roleCodes.has("ADMIN")) labels.push(USER_ROLE_LABELS.ADMIN)
+  if (roleCodes.has("TEAM_MANAGER")) labels.push(USER_ROLE_LABELS.TEAM_MANAGER)
+  if (departmentAuthorized) labels.push("부서원")
+  if (!departmentAuthorized && roleCodes.has("VIEWER")) {
+    labels.push(USER_ROLE_LABELS.VIEWER)
+  }
+
+  return labels.length ? labels.join(", ") : "-"
 }
 
 function adaptRole(role) {
@@ -137,6 +192,10 @@ function normalizeRoleCode(roleIdOrCode) {
   }
 
   return String(roleIdOrCode).replace(/^ROLE_/, "")
+}
+
+function getUserRoleFilter(roleId) {
+  return USER_ROLE_FILTER_OPTIONS.find((option) => option.id === roleId)
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -159,7 +218,15 @@ export async function fetchUsers(params = {}) {
   query.set("size", String(size))
   if (keyword) query.set("keyword", keyword)
   if (department && department !== "전체") query.set("department", department)
-  if (normalizeRoleCode(roleId)) query.set("roleCode", normalizeRoleCode(roleId))
+  const roleFilter = getUserRoleFilter(roleId)
+  const roleCode = roleFilter
+  ? (roleFilter.roleCode ?? "")
+  : normalizeRoleCode(roleId)
+
+  if (roleCode) query.set("roleCode", roleCode)
+  if (roleFilter?.departmentAuthorized) {
+    query.set("departmentAuthorized", roleFilter.departmentAuthorized)
+  }
   if (activeStatus === "사용 중") query.set("useYn", "Y")
   if (activeStatus === "사용 중지") query.set("useYn", "N")
 
@@ -219,6 +286,9 @@ export function buildPermissionProfiles(roles, departmentProfiles) {
   const adminRole = (roles ?? []).find(
     (role) => normalizeRoleCode(role.id) === "ADMIN",
   )
+  const viewerRole = (roles ?? []).find(
+    (role) => normalizeRoleCode(role.id) === "VIEWER",
+  )
   const profiles = []
 
   if (adminRole) {
@@ -229,6 +299,17 @@ export function buildPermissionProfiles(roles, departmentProfiles) {
       userCount: adminRole.userCount ?? 0,
       profileType: "role",
       roleId: adminRole.id,
+    })
+  }
+
+  if (viewerRole) {
+    profiles.push({
+      id: "role:VIEWER",
+      name: viewerRole.name || "조회 전용",
+      description: "신규 가입 기본 조회 권한",
+      userCount: viewerRole.userCount ?? 0,
+      profileType: "role",
+      roleId: viewerRole.id,
     })
   }
 
@@ -292,17 +373,14 @@ export async function updateDepartmentPermissions(departmentName, groups) {
   return buildGroupsFromPermissionCatalog(permissions, savedCodes)
 }
 
-export async function fetchUserFilterOptions(rolesSource) {
-  const rolesPromise =
-    rolesSource === undefined ? fetchRoles() : Promise.resolve(rolesSource)
-  const [departments, roles] = await Promise.all([
-    apiFetch(`/api/admin/users/departments`, { method: "GET" }),
-    rolesPromise,
-  ])
+export async function fetchUserFilterOptions() {
+  const departments = await apiFetch(`/api/admin/users/departments`, {
+    method: "GET",
+  })
 
   return {
     departments: ["전체", ...(departments ?? [])],
-    roles,
+    roles: USER_ROLE_FILTER_OPTIONS,
     activeStatuses: ["전체", "사용 중", "사용 중지"],
   }
 }
