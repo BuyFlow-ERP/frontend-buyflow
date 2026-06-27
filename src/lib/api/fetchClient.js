@@ -3,10 +3,14 @@ import { clearAuthSession, getAccessToken } from "@/utils/authStorage"
 const DEFAULT_API_BASE_URL = ""
 
 function getApiBaseUrl() {
-  return (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(
-    /\/$/,
-    "",
-  )
+  const baseUrl =
+    typeof window === "undefined"
+      ? process.env.API_INTERNAL_BASE_URL ||
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        DEFAULT_API_BASE_URL
+      : process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
+
+  return baseUrl.replace(/\/$/, "")
 }
 
 function createUrl(path) {
@@ -77,10 +81,13 @@ function getErrorMessage(payload, status) {
 
 export async function apiFetch(path, options = {}) {
   const headers = new Headers(options.headers)
-  const token = getAccessToken()
+  const token = typeof window === "undefined" ? null : getAccessToken()
   const hasBody = options.body !== undefined && options.body !== null
   const isFormData =
     typeof FormData !== "undefined" && options.body instanceof FormData
+
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`
+  const isAuthApi = normalizedPath.startsWith("/api/auth/")
 
   if (isFormData) {
     headers.delete("Content-Type")
@@ -93,7 +100,7 @@ export async function apiFetch(path, options = {}) {
     headers.set("Accept", "application/json")
   }
 
-  if (token && !headers.has("Authorization")) {
+  if (token && !isAuthApi && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`)
   }
 

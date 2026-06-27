@@ -1,0 +1,5 @@
+{
+  "data": {
+    "CORS_ALLOWED_ORIGIN": "http://localhost:3000"
+  }
+}
