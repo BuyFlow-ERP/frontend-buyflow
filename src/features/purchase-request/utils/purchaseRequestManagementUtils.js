@@ -32,21 +32,23 @@ export const DEFAULT_PURCHASE_REQUEST_PAGINATION = {
   totalPages: 1,
 }
 
+export const PURCHASE_REQUEST_TABLE_HEADERS = [
+  "요청 번호",
+  "요청 제목",
+  "요청자",
+  "요청 부서",
+  "요청일",
+  "수정일",
+  "희망 입고일",
+  "품목 수",
+  "총 요청 금액",
+  "우선순위",
+  "상태",
+  "관리",
+]
+
 export function downloadPurchaseRequestCsv(requests) {
-  const headers = [
-    "요청 번호",
-    "요청 제목",
-    "요청자",
-    "요청 부서",
-    "요청일",
-    "수정일",
-    "희망 입고일",
-    "품목 수",
-    "총 요청 금액",
-    "우선순위",
-    "상태",
-    "관리",
-  ]
+  const headers = PURCHASE_REQUEST_TABLE_HEADERS
 
   const rows = requests.map((request) => [
     request.requestNumber,
@@ -60,6 +62,7 @@ export function downloadPurchaseRequestCsv(requests) {
     request.totalAmount,
     request.priority,
     request.status,
+    "",
   ])
 
   downloadCsvFile([headers, ...rows], "구매요청목록.csv")

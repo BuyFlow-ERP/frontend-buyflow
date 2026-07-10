@@ -11,6 +11,7 @@ import {
   EDITABLE_REQUEST_STATUS_LABELS,
   getRequestPriorityClassName,
   getRequestStatusClassName,
+  resolveRequestStatusLabel,
 } from "@/constants/purchaseRequestStatus"
 
 function StatusBadge({ status }) {
@@ -384,9 +385,11 @@ export default function PurchaseRequestDetail({ requestId }) {
     return <ErrorState error={error} onReload={reload} />
   }
 
-  const canEdit = EDITABLE_STATUS_LABELS.has(request.status)
-  const canDelete = DELETABLE_STATUS_LABELS.has(request.status)
-  const canCancel = CANCELABLE_STATUS_LABELS.has(request.status)
+  const normalizedStatus = resolveRequestStatusLabel(request.status)
+
+  const canEdit = EDITABLE_REQUEST_STATUS_LABELS.has(normalizedStatus)
+  const canDelete = EDITABLE_REQUEST_STATUS_LABELS.has(normalizedStatus)
+  const canCancel = EDITABLE_REQUEST_STATUS_LABELS.has(normalizedStatus)
 
   return (
     <div className="w-full">

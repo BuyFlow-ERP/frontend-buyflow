@@ -10,63 +10,56 @@ export const metadata = {
   title: "대시보드 | BuyFlow ERP",
 }
 
+const RECEIPT_MONTH_OPTIONS = [3, 6, 12]
+const DEFAULT_RECEIPT_MONTHS = 6
+
 function normalizeReceiptMonths(value) {
   const months = Number(value)
 
-  if ([3, 6, 12].includes(months)) {
+  if (RECEIPT_MONTH_OPTIONS.includes(months)) {
     return months
   }
 
-  return 6
+  return DEFAULT_RECEIPT_MONTHS
 }
-
-const RECEIPT_MONTH_OPTIONS = [3, 6, 12]
-const DEFAULT_RECEIPT_MONTHS = 6
 
 export default async function DashboardPage({ searchParams }) {
   const params = await searchParams
   const receiptMonths = normalizeReceiptMonths(params?.receiptMonths)
 
-  function normalizeReceiptMonths(value) {
-    const months = Number(value)
+  const data = await getDashboardData({ receiptMonths })
 
-    if (RECEIPT_MONTH_OPTIONS.includes(months)) {
-      return months
-    }
-
-    return DEFAULT_RECEIPT_MONTHS
-  }
   return (
     <>
       <div className="mb-3 flex items-center justify-between">
         <h1 className="text-[22px] font-bold text-slate-900">현황 요약</h1>
 
         <p className="text-[13px] text-slate-400">
-          최종 업데이트: {data.lastUpdated}
+          최종 업데이트: {data?.lastUpdated ?? "-"}
         </p>
       </div>
 
       <DashboardSummaryCards
-        summary={data.summary ?? []}
-        summaryDetails={data.summaryDetails ?? {}}
+        summary={data?.summary ?? []}
+        summaryDetails={data?.summaryDetails ?? {}}
       />
 
       <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
         <MonthlyReceiptChart
-          data={data.monthlyReceipt ?? []}
-          details={data.monthlyReceiptDetails ?? []}
+          data={data?.monthlyReceipt ?? []}
+          details={data?.monthlyReceiptDetails ?? []}
           receiptMonths={receiptMonths}
         />
 
-        <StockStatusChart data={data.stockStatus ?? []} />
+        <StockStatusChart data={data?.stockStatus ?? []} />
       </div>
 
       <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
         <DashboardTables
-          recentRequests={data.recentRequests ?? []}
-          recentRequestTotal={data.recentRequestTotal ?? 0}
-          lowStockItems={data.lowStockItems ?? []}
-          lowStockTotal={data.lowStockTotal ?? 0}
+          recentRequests={data?.recentRequests ?? []}
+          recentRequestTotal={data?.recentRequestTotal ?? 0}
+          lowStockItems={data?.lowStockItems ?? []}
+          lowStockTotal={data?.lowStockTotal ?? 0}
         />
       </div>
 
