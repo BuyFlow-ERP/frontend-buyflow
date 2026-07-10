@@ -11,6 +11,7 @@ import {
   formatWon,
   getRequestStatusStyle,
 } from "@/features/approval/utils/approvalUtils"
+import { REQUEST_STATUS_OPTIONS } from "@/constants/purchaseRequestStatus"
 
 function SearchInput({
   label,
@@ -173,11 +174,11 @@ export default function ApprovalListManagement() {
               onChange={(event) => updateFilter("status", event.target.value)}
               className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-[13px] text-slate-600 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="전체">전체</option>
-              <option value="PENDING_APPROVAL">승인 대기</option>
-              <option value="APPROVED">승인 완료</option>
-              <option value="REJECTED">반려</option>
-              <option value="CANCEL_REQUESTED">요청 취소</option>
+              {REQUEST_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
 

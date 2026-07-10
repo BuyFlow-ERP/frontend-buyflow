@@ -1,7 +1,13 @@
 import { apiFetch } from "@/lib/api/fetchClient"
+import { isMockEnabled } from "@/lib/env/isMockEnabled"
 import { mockApprovalDetails } from "@/features/approval/data/mockApprovalData"
+import {
+  REQUEST_FILTER_ALL,
+  REQUEST_STATUS,
+  resolveRequestStatusLabel,
+} from "@/constants/purchaseRequestStatus"
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_APPROVAL_MOCK !== "false"
+const USE_MOCK = isMockEnabled("NEXT_PUBLIC_USE_APPROVAL_MOCK")
 
 const mockStore = new Map(
   Object.entries(mockApprovalDetails).map(([key, value]) => [key, value]),
@@ -29,8 +35,13 @@ function updateMockDecision(approvalId, decision, comment) {
   const approval = clone(getMockApproval(approvalId))
   const approved = decision === "APPROVE"
 
-  approval.requestStatus = approved ? "APPROVED" : "REJECTED"
-  approval.requestStatusLabel = approved ? "승인 완료" : "반려"
+  approval.requestStatus = approved
+    ? REQUEST_STATUS.APPROVED.code
+    : REQUEST_STATUS.REJECTED.code
+
+  approval.requestStatusLabel = approved
+    ? REQUEST_STATUS.APPROVED.label
+    : REQUEST_STATUS.REJECTED.label
 
   approval.currentStep = {
     ...approval.currentStep,
@@ -122,8 +133,8 @@ export async function requestApprovalCancellation(approvalId) {
 
     const approval = clone(getMockApproval(approvalId))
 
-    approval.requestStatus = "CANCEL_REQUESTED"
-    approval.requestStatusLabel = "요청 취소"
+    approval.requestStatus = REQUEST_STATUS.CANCELED.code
+    approval.requestStatusLabel = REQUEST_STATUS.CANCELED.label
 
     mockStore.set(String(approvalId), approval)
 
@@ -142,13 +153,6 @@ function includesKeyword(value, keyword) {
   return String(value ?? "")
     .toLowerCase()
     .includes(keyword.trim().toLowerCase())
-}
-
-function isWithinRange(value, from, to) {
-  if (from && value < from) return false
-  if (to && value > to) return false
-
-  return true
 }
 
 function calculateApprovalTotalAmount(items = []) {
@@ -173,7 +177,9 @@ function toApprovalListItem(approval) {
     totalAmount: calculateApprovalTotalAmount(approval.items),
     priority: approval.priorityLabel,
     requestStatus: approval.requestStatus,
-    requestStatusLabel: approval.requestStatusLabel,
+    requestStatusLabel:
+      approval.requestStatusLabel ??
+      resolveRequestStatusLabel(approval.requestStatus),
     approvalStep: approval.currentStep?.stepLabel ?? "-",
     approver: approval.currentStep?.approver
       ? `${approval.currentStep.approver.name} ${approval.currentStep.approver.position}`
@@ -187,7 +193,7 @@ function filterMockApprovals(params = {}) {
     title = "",
     requester = "",
     department = "",
-    status = "전체",
+    status = REQUEST_FILTER_ALL,
     desiredReceiptAt = "",
   } = params
 
@@ -206,7 +212,7 @@ function filterMockApprovals(params = {}) {
         !department || includesKeyword(approval.department, department)
 
       const matchesStatus =
-        status === "전체" || approval.requestStatus === status
+        status === REQUEST_FILTER_ALL || approval.requestStatus === status
 
       const matchesDesiredReceiptAt =
         !desiredReceiptAt ||
@@ -254,7 +260,7 @@ function createApprovalListQueryString(params = {}) {
       value === undefined ||
       value === null ||
       value === "" ||
-      value === "전체"
+      value === REQUEST_FILTER_ALL
     ) {
       return
     }
@@ -266,20 +272,6 @@ function createApprovalListQueryString(params = {}) {
   })
 
   return query.toString()
-}
-
-const REQUEST_STATUS_LABELS = {
-  DRAFT: "임시 저장",
-  PENDING: "승인 대기",
-  PENDING_APPROVAL: "승인 대기",
-  WAITING: "승인 대기",
-  REQUESTED: "승인 대기",
-  APPROVED: "승인 완료",
-  REJECTED: "반려",
-  ORDERED: "발주 완료",
-  CANCEL_REQUESTED: "요청 취소",
-  CANCELED: "요청 취소",
-  CANCELLED: "요청 취소",
 }
 
 function normalizeApprovalListItem(item, index = 0) {
@@ -300,9 +292,7 @@ function normalizeApprovalListItem(item, index = 0) {
     priority: item.priority ?? item.priorityLabel ?? "일반",
     requestStatus,
     requestStatusLabel:
-      item.requestStatusLabel ??
-      REQUEST_STATUS_LABELS[requestStatus] ??
-      requestStatus,
+      item.requestStatusLabel ?? resolveRequestStatusLabel(requestStatus),
     approvalStep: item.approvalStep ?? item.currentStep?.stepLabel ?? "-",
     approver: item.approver ?? item.currentStep?.approver?.name ?? "-",
   }

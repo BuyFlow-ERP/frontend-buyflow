@@ -5,19 +5,21 @@ import {
   fetchApprovals,
   fetchApprovalSummary,
 } from "@/features/approval/api/approvalApi"
+import { APPROVAL_DEFAULT_PAGE_SIZE } from "@/constants/pagination"
+import { REQUEST_FILTER_ALL } from "@/constants/purchaseRequestStatus"
 
 const DEFAULT_FILTERS = {
   requestNumber: "",
   title: "",
   requester: "",
   department: "",
-  status: "전체",
+  status: REQUEST_FILTER_ALL,
   desiredReceiptAt: "",
 }
 
 const DEFAULT_PAGINATION = {
   page: 1,
-  size: 10,
+  size: APPROVAL_DEFAULT_PAGE_SIZE,
   totalElements: 0,
   totalPages: 1,
 }
@@ -30,9 +32,9 @@ const DEFAULT_SUMMARY = {
 }
 
 function createDisplayedSummary(baseSummary, activeFilters, totalElements) {
-  const status = activeFilters?.status ?? "전체"
+  const status = activeFilters?.status ?? REQUEST_FILTER_ALL
 
-  if (status === "전체") {
+  if (status === REQUEST_FILTER_ALL) {
     return baseSummary
   }
 
@@ -50,7 +52,7 @@ export default function useApprovalListManagement() {
 
   const [approvals, setApprovals] = useState([])
   const [pagination, setPagination] = useState(DEFAULT_PAGINATION)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGINATION.size)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -171,7 +173,7 @@ export default function useApprovalListManagement() {
   function selectSummaryFilter(filter) {
     const nextFilters = {
       ...appliedFilters,
-      status: filter.status ?? "전체",
+      status: filter.status ?? REQUEST_FILTER_ALL,
     }
 
     setDraftFilters(nextFilters)

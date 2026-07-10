@@ -8,13 +8,10 @@ import {
   PURCHASE_REQUEST_TABLE_HEADERS,
 } from "@/features/purchase-request/utils/purchaseRequestManagementUtils"
 
-const statusStyles = {
-  "승인 대기": "border-slate-200 bg-white text-slate-600",
-  "승인 완료": "border-blue-200 bg-blue-50 text-blue-600",
-  반려: "border-rose-200 bg-rose-50 text-rose-500",
-  "발주 완료": "border-slate-200 bg-slate-50 text-slate-700",
-  "요청 취소": "border-slate-200 bg-slate-100 text-slate-500",
-}
+import {
+  EDITABLE_REQUEST_STATUS_LABELS,
+  getRequestStatusClassName,
+} from "@/constants/purchaseRequestStatus"
 
 function PriorityBadge({ priority }) {
   const isUrgent = priority === "긴급"
@@ -35,9 +32,10 @@ function PriorityBadge({ priority }) {
 function StatusBadge({ status }) {
   return (
     <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-[12px] font-semibold ${
-        statusStyles[status] ?? "border-slate-200 bg-slate-50 text-slate-500"
-      }`}
+      className={`inline-flex rounded-full border px-2.5 py-1 text-[12px] font-semibold ${getRequestStatusClassName(
+        status,
+        { table: true },
+      )}`}
     >
       {status}
     </span>
@@ -129,8 +127,10 @@ export default function PurchaseRequestTable({
           {!loading &&
             !error &&
             requests.map((request) => {
-              const canEdit = request.status === "승인 대기"
-              const canDelete = request.status === "승인 대기"
+              const canEdit = EDITABLE_REQUEST_STATUS_LABELS.has(request.status)
+              const canDelete = EDITABLE_REQUEST_STATUS_LABELS.has(
+                request.status,
+              )
 
               return (
                 <tr

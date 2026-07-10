@@ -11,6 +11,18 @@ import {
   calculateRequestTotal,
   getTodayString,
 } from "@/features/purchase-request/utils/purchaseRequestUtils"
+import {
+  DEFAULT_ITEM_REMARK,
+  LOCKED_PURCHASE_REQUEST_FORM_FIELDS,
+  PURCHASE_REQUEST_CATEGORY_ALL,
+} from "@/features/purchase-request/config/purchaseRequestFormConfig"
+import {
+  createCategoryOptions,
+  filterSelectableProducts,
+  getValidatedAttachment,
+  toPurchaseRequestItemPayload,
+} from "@/features/purchase-request/utils/purchaseRequestFormUtils"
+import { resolveRequestPriorityCode } from "@/constants/purchaseRequestStatus"
 
 function createInitialForm() {
   return {
@@ -24,14 +36,6 @@ function createInitialForm() {
     reason: "",
   }
 }
-
-const LOCKED_FORM_FIELDS = new Set([
-  "requestNumber",
-  "requester",
-  "department",
-  "requestDate",
-])
-const FIXED_ITEM_REMARK = "해당 사항 없음"
 
 function getCurrentRequestorId(user) {
   const rawUserId = user?.dbUserId ?? user?.userId
@@ -61,11 +65,11 @@ export default function usePurchaseRequestCreate() {
   const [draftSelectedIds, setDraftSelectedIds] = useState(new Set())
 
   const [keyword, setKeyword] = useState("")
-  const [category, setCategory] = useState("전체 카테고리")
+  const [category, setCategory] = useState(PURCHASE_REQUEST_CATEGORY_ALL)
   const [appliedKeyword, setAppliedKeyword] = useState("")
-  const [appliedCategory, setAppliedCategory] = useState("전체 카테고리")
-
-  const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
+  const [appliedCategory, setAppliedCategory] = useState(
+    PURCHASE_REQUEST_CATEGORY_ALL,
+  )
 
   const requesterName = useMemo(() => {
     if (!isAuthReady || !user) {
@@ -129,37 +133,18 @@ export default function usePurchaseRequestCreate() {
     [requestItems],
   )
 
-  const filteredProducts = useMemo(() => {
-    const normalizedKeyword = appliedKeyword.trim().toLowerCase()
+  const filteredProducts = useMemo(
+    () => filterSelectableProducts(products, appliedKeyword, appliedCategory),
+    [products, appliedCategory, appliedKeyword],
+  )
 
-    return products.filter((product) => {
-      const matchesKeyword =
-        !normalizedKeyword ||
-        String(product.code ?? "")
-          .toLowerCase()
-          .includes(normalizedKeyword) ||
-        String(product.name ?? "")
-          .toLowerCase()
-          .includes(normalizedKeyword)
-
-      const matchesCategory =
-        appliedCategory === "전체 카테고리" ||
-        product.category === appliedCategory
-
-      return matchesKeyword && matchesCategory
-    })
-  }, [products, appliedCategory, appliedKeyword])
-
-  const categoryOptions = useMemo(() => {
-    const categories = products
-      .map((product) => product.category)
-      .filter(Boolean)
-
-    return ["전체 카테고리", ...Array.from(new Set(categories))]
-  }, [products])
+  const categoryOptions = useMemo(
+    () => createCategoryOptions(products),
+    [products],
+  )
 
   function updateForm(name, value) {
-    if (LOCKED_FORM_FIELDS.has(name)) {
+    if (LOCKED_PURCHASE_REQUEST_FORM_FIELDS.has(name)) {
       return
     }
 
@@ -170,21 +155,7 @@ export default function usePurchaseRequestCreate() {
   }
 
   function changeAttachment(event) {
-    const file = event.target.files?.[0] ?? null
-
-    if (!file) {
-      setAttachment(null)
-      return
-    }
-
-    if (file.size > MAX_ATTACHMENT_SIZE) {
-      window.alert("첨부파일은 최대 10MB까지 업로드할 수 있습니다.")
-      event.target.value = ""
-      setAttachment(null)
-      return
-    }
-
-    setAttachment(file)
+    setAttachment(getValidatedAttachment(event))
   }
 
   function openItemModal() {
@@ -237,17 +208,19 @@ export default function usePurchaseRequestCreate() {
   }
 
   function confirmSelectedProducts() {
-    const currentQuantityMap = new Map(
-      requestItems.map((item) => [item.id, item.quantity]),
-    )
+    const currentItemMap = new Map(requestItems.map((item) => [item.id, item]))
 
     const nextItems = products
       .filter((product) => draftSelectedIds.has(product.id))
-      .map((product) => ({
-        ...product,
-        quantity: currentQuantityMap.get(product.id) ?? 1,
-        remark: FIXED_ITEM_REMARK,
-      }))
+      .map((product) => {
+        const currentItem = currentItemMap.get(product.id)
+
+        return {
+          ...product,
+          quantity: currentItem?.quantity ?? 1,
+          remark: currentItem?.remark ?? DEFAULT_ITEM_REMARK,
+        }
+      })
 
     setRequestItems(nextItems)
     setIsItemModalOpen(false)
@@ -331,11 +304,6 @@ export default function usePurchaseRequestCreate() {
       return
     }
 
-    if (requestItems.length === 0) {
-      window.alert("구매 요청 품목을 1개 이상 추가해 주세요.")
-      return
-    }
-
     submittingRef.current = true
     setIsSubmitting(true)
 
@@ -349,16 +317,9 @@ export default function usePurchaseRequestCreate() {
         expectedDate: currentForm.expectedDate,
         title: currentForm.title,
         urgency: currentForm.urgency,
-        priority: currentForm.urgency === "긴급" ? "URGENT" : "NORMAL",
+        priority: resolveRequestPriorityCode(currentForm.urgency),
         reason: currentForm.reason,
-        items: requestItems.map((item) => ({
-          productId: item.productId ?? item.id,
-          requestQuantity: Number(item.quantity ?? item.requestQuantity ?? 1),
-          estimatedUnitPrice: Number(
-            item.unitPrice ?? item.estimatedUnitPrice ?? 0,
-          ),
-          remark: FIXED_ITEM_REMARK,
-        })),
+        items: requestItems.map(toPurchaseRequestItemPayload),
       }
 
       const createdRequest = await createPurchaseRequest(payload, attachment)

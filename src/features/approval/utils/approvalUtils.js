@@ -1,3 +1,5 @@
+import { getRequestStatusClassName } from "@/constants/purchaseRequestStatus"
+
 export function formatWon(value = 0) {
   return `${Number(value).toLocaleString("ko-KR")}원`
 }
@@ -29,12 +31,5 @@ export function calculateTotalAmount(items = []) {
 }
 
 export function getRequestStatusStyle(statusCode) {
-  const styles = {
-    PENDING_APPROVAL: "border-amber-200 bg-amber-50 text-amber-600",
-    APPROVED: "border-blue-200 bg-blue-50 text-blue-600",
-    REJECTED: "border-rose-200 bg-rose-50 text-rose-500",
-    CANCEL_REQUESTED: "border-slate-200 bg-slate-50 text-slate-500",
-  }
-
-  return styles[statusCode] ?? "border-slate-200 bg-slate-50 text-slate-500"
+  return getRequestStatusClassName(statusCode)
 }

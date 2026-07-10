@@ -7,31 +7,18 @@ import { Download, FileText, List, Pencil, Trash2, XCircle } from "lucide-react"
 import usePurchaseRequestDetail from "@/features/purchase-request/hooks/usePurchaseRequestDetail"
 import { formatWon } from "@/features/purchase-request/utils/purchaseRequestUtils"
 import LoadingOverlay from "@/components/common/LoadingOverlay"
-
-const STATUS_CLASS_NAMES = {
-  "승인 대기": "border-amber-200 bg-amber-50 text-amber-600",
-  "승인 완료": "border-blue-200 bg-blue-50 text-blue-600",
-  반려: "border-rose-200 bg-rose-50 text-rose-500",
-  "발주 완료": "border-slate-200 bg-slate-100 text-slate-700",
-  "요청 취소": "border-slate-200 bg-slate-100 text-slate-500",
-}
-
-const PRIORITY_CLASS_NAMES = {
-  일반: "border-slate-200 bg-slate-50 text-slate-500",
-  긴급: "border-rose-200 bg-rose-50 text-rose-500",
-}
-
-const EDITABLE_STATUS_LABELS = new Set(["승인 대기"])
-const DELETABLE_STATUS_LABELS = new Set(["승인 대기"])
-const CANCELABLE_STATUS_LABELS = new Set(["승인 대기"])
+import {
+  EDITABLE_REQUEST_STATUS_LABELS,
+  getRequestPriorityClassName,
+  getRequestStatusClassName,
+} from "@/constants/purchaseRequestStatus"
 
 function StatusBadge({ status }) {
   return (
     <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-[12px] font-semibold ${
-        STATUS_CLASS_NAMES[status] ??
-        "border-slate-200 bg-slate-50 text-slate-500"
-      }`}
+      className={`inline-flex rounded-full border px-2.5 py-1 text-[12px] font-semibold ${getRequestStatusClassName(
+        status,
+      )}`}
     >
       {status || "-"}
     </span>
@@ -41,10 +28,9 @@ function StatusBadge({ status }) {
 function PriorityBadge({ priority }) {
   return (
     <span
-      className={`inline-flex rounded-full border px-2 py-0.5 text-[12px] font-semibold ${
-        PRIORITY_CLASS_NAMES[priority] ??
-        "border-slate-200 bg-slate-50 text-slate-500"
-      }`}
+      className={`inline-flex rounded-full border px-2 py-0.5 text-[12px] font-semibold ${getRequestPriorityClassName(
+        priority,
+      )}`}
     >
       {priority || "-"}
     </span>

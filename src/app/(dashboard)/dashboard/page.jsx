@@ -20,19 +20,22 @@ function normalizeReceiptMonths(value) {
   return 6
 }
 
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+const RECEIPT_MONTH_OPTIONS = [3, 6, 12]
+const DEFAULT_RECEIPT_MONTHS = 6
 
 export default async function DashboardPage({ searchParams }) {
   const params = await searchParams
   const receiptMonths = normalizeReceiptMonths(params?.receiptMonths)
 
-  const [data] = await Promise.all([
-    getDashboardData({ receiptMonths }),
-    delay(1000),
-  ])
+  function normalizeReceiptMonths(value) {
+    const months = Number(value)
 
+    if (RECEIPT_MONTH_OPTIONS.includes(months)) {
+      return months
+    }
+
+    return DEFAULT_RECEIPT_MONTHS
+  }
   return (
     <>
       <div className="mb-3 flex items-center justify-between">

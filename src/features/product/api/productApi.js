@@ -1,4 +1,5 @@
 import { apiFetch, getApiUrl } from "@/lib/api/fetchClient"
+import { isMockEnabled } from "@/lib/env/isMockEnabled"
 import { getAccessToken } from "@/utils/authStorage"
 
 import {
@@ -6,7 +7,7 @@ import {
   productFilterOptions,
 } from "@/features/product/data/mockProductData"
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_PRODUCT_MOCK !== "false"
+const USE_MOCK = isMockEnabled("NEXT_PUBLIC_USE_PRODUCT_MOCK")
 
 function normalizeProductItem(product) {
   return {
@@ -43,7 +44,7 @@ function withAllOption(values = []) {
     ),
   )
 
-  return ["전체", ...uniqueValues.filter((value) => value !== "전체")]
+  return [FILTER_ALL, ...uniqueValues.filter((value) => value !== FILTER_ALL)]
 }
 
 function normalizeProductFilterOptions(data = {}) {
@@ -54,7 +55,7 @@ function normalizeProductFilterOptions(data = {}) {
       rawData.categories ?? rawData.categoryNames ?? [],
     ),
     units: withAllOption(rawData.units ?? []),
-    activeStatuses: rawData.activeStatuses ?? ["전체", "사용", "미사용"],
+    activeStatuses: rawData.activeStatuses ?? PRODUCT_ACTIVE_STATUS_OPTIONS,
   }
 }
 
@@ -111,18 +112,17 @@ function getMockProducts(params = {}) {
     )
   }
 
-  if (params.category && params.category !== "전체") {
+  if (params.category && params.category !== FILTER_ALL) {
     items = items.filter((item) => item.category === params.category)
   }
 
-  if (params.unit && params.unit !== "전체") {
+  if (params.unit && params.unit !== FILTER_ALL) {
     items = items.filter((item) => item.unit === params.unit)
   }
 
-  if (params.activeStatus && params.activeStatus !== "전체") {
-    const activeValue = params.activeStatus === "사용"
-
-    items = items.filter((item) => item.isActive === activeValue)
+  if (params.activeStatus && params.activeStatus !== FILTER_ALL) {
+    const activeValue = params.activeStatus === PRODUCT_ACTIVE_STATUS.ACTIVE
+    items = items.filter((product) => product.isActive === activeValue)
   }
 
   const totalElements = items.length
@@ -299,24 +299,6 @@ export async function fetchProductById(productId) {
   )
 
   return normalizeProductItem(data)
-}
-
-function getFileNameFromDisposition(disposition, fallback) {
-  if (!disposition) return fallback
-
-  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i)
-
-  if (utf8Match?.[1]) {
-    return decodeURIComponent(utf8Match[1])
-  }
-
-  const normalMatch = disposition.match(/filename="?([^"]+)"?/i)
-
-  if (normalMatch?.[1]) {
-    return decodeURIComponent(normalMatch[1])
-  }
-
-  return fallback
 }
 
 function createProductExcelQueryString(params = {}) {

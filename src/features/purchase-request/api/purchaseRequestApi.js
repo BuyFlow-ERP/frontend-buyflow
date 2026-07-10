@@ -1,12 +1,22 @@
 import { apiFetch, getApiUrl } from "@/lib/api/fetchClient"
+import { isMockEnabled } from "@/lib/env/isMockEnabled"
 import { getAccessToken } from "@/utils/authStorage"
 import {
   mockPurchaseRequests,
   purchaseRequestFilterOptions,
 } from "@/features/purchase-request/data/mockPurchaseRequestListData"
 import { getMockPurchaseRequestDetail } from "@/features/purchase-request/data/mockPurchaseRequestDetailData"
+import { getFileNameFromDisposition } from "@/lib/file/downloadFile"
+import { MAX_SELECT_OPTION_SIZE } from "@/constants/pagination"
+import { PRODUCT_ACTIVE_STATUS } from "@/constants/productStatus"
+import {
+  REQUEST_DEPARTMENT_ALL,
+  REQUEST_FILTER_ALL,
+  resolveRequestPriorityLabel,
+  resolveRequestStatusLabel,
+} from "@/constants/purchaseRequestStatus"
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_PURCHASE_REQUEST_MOCK !== "false"
+const USE_MOCK = isMockEnabled("NEXT_PUBLIC_USE_PURCHASE_REQUEST_MOCK")
 
 function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds))
@@ -21,9 +31,9 @@ function filterMockPurchaseRequests(params = {}) {
     requestNumber = "",
     title = "",
     requester = "",
-    department = "전체 부서",
-    status = "전체",
-    priority = "전체",
+    department = REQUEST_DEPARTMENT_ALL,
+    status = REQUEST_FILTER_ALL,
+    priority = REQUEST_FILTER_ALL,
     desiredReceiptAt = "",
   } = params
 
@@ -37,11 +47,13 @@ function filterMockPurchaseRequests(params = {}) {
       !requester || includesKeyword(request.requester, requester)
 
     const matchesDepartment =
-      department === "전체 부서" || request.department === department
+      department === REQUEST_DEPARTMENT_ALL || request.department === department
 
-    const matchesStatus = status === "전체" || request.status === status
+    const matchesStatus =
+      status === REQUEST_FILTER_ALL || request.status === status
 
-    const matchesPriority = priority === "전체" || request.priority === priority
+    const matchesPriority =
+      priority === REQUEST_FILTER_ALL || request.priority === priority
 
     const matchesDesiredReceiptAt =
       !desiredReceiptAt || request.desiredReceiptAt === desiredReceiptAt
@@ -104,16 +116,13 @@ function normalizePurchaseRequestListItem(item, index = 0) {
     requester: item.requester ?? item.requesterName ?? "-",
     department: item.department ?? item.departmentName ?? "-",
     requestedAt: item.requestedAt ?? item.requestDate ?? "",
-    desiredReceiptAt:
-      item.desiredReceiptAt ?? item.desiredReceiptAt ?? item.expectedDate ?? "",
+    desiredReceiptAt: item.desiredReceiptAt ?? item.expectedDate ?? "",
     createdAt: item.createdAt ?? item.requestedAt ?? item.requestDate ?? "",
     updatedAt: item.updatedAt ?? "",
     itemCount: Number(item.itemCount ?? item.items?.length ?? 0),
     totalAmount: Number(item.totalAmount ?? 0),
-    priority:
-      PURCHASE_REQUEST_PRIORITY_LABELS[rawPriority] ?? rawPriority ?? "일반",
-    status:
-      PURCHASE_REQUEST_STATUS_LABELS[rawStatus] ?? rawStatus ?? "승인 대기",
+    priority: resolveRequestPriorityLabel(rawPriority),
+    status: resolveRequestStatusLabel(rawStatus),
     items: item.items ?? [],
   }
 }
@@ -146,8 +155,8 @@ function createQueryString(params) {
     if (
       value === "" ||
       value === false ||
-      value === "전체" ||
-      value === "전체 부서"
+      value === REQUEST_FILTER_ALL ||
+      value === REQUEST_DEPARTMENT_ALL
     ) {
       return
     }
@@ -306,22 +315,6 @@ function normalizePurchaseRequestDetailResponse(data) {
     items,
     attachments,
   }
-}
-
-function getFileNameFromDisposition(disposition, fallback) {
-  if (!disposition) return fallback
-
-  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i)
-  if (utf8Match?.[1]) {
-    return decodeURIComponent(utf8Match[1])
-  }
-
-  const normalMatch = disposition.match(/filename="?([^"]+)"?/i)
-  if (normalMatch?.[1]) {
-    return decodeURIComponent(normalMatch[1])
-  }
-
-  return fallback
 }
 
 export async function downloadPurchaseRequestExcel() {
@@ -545,8 +538,8 @@ export async function fetchPurchaseRequestProducts() {
     const query = new URLSearchParams()
 
     query.set("page", "0")
-    query.set("size", "20000")
-    query.set("activeStatus", "사용")
+    query.set("size", String(MAX_SELECT_OPTION_SIZE))
+    query.set("activeStatus", PRODUCT_ACTIVE_STATUS.ACTIVE)
 
     const data = await apiFetch(`/api/products?${query.toString()}`, {
       cache: "no-store",

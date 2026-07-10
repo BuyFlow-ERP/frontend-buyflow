@@ -15,6 +15,7 @@ export default function PurchaseRequestItemSection({
   onOpenItemModal,
   onChangeQuantity,
   onRemoveItem,
+  onChangeRemark,
 }) {
   return (
     <section className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -115,9 +116,12 @@ export default function PurchaseRequestItemSection({
                   <td className="px-3 py-2.5">
                     <input
                       type="text"
-                      value="해당 사항 없음"
-                      disabled
-                      className="h-9 w-56 rounded-md border border-slate-200 bg-slate-50 px-2 text-[13px] text-slate-500"
+                      value={item.remark ?? ""}
+                      onChange={(event) =>
+                        onChangeRemark?.(item.id, event.target.value)
+                      }
+                      placeholder="비고 입력"
+                      className="h-9 w-56 rounded-md border border-slate-200 px-2 text-[13px] text-slate-600 outline-none placeholder:text-slate-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                     />
                   </td>
 
