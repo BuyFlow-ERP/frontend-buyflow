@@ -66,6 +66,7 @@ export default function usePurchaseRequestEdit(requestId) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isProductLoading, setIsProductLoading] = useState(false)
   const submittingRef = useRef(false)
 
   const [isItemModalOpen, setIsItemModalOpen] = useState(false)
@@ -77,7 +78,6 @@ export default function usePurchaseRequestEdit(requestId) {
   const [appliedCategory, setAppliedCategory] = useState(
     PURCHASE_REQUEST_CATEGORY_ALL,
   )
-  const [isProductLoading, setIsProductLoading] = useState(false)
 
   useEffect(() => {
     let ignore = false

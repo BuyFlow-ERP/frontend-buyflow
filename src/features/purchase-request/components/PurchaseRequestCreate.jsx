@@ -16,6 +16,7 @@ export default function PurchaseRequestCreate() {
     attachment,
     requestItems,
     totalAmount,
+    isInitializing,
     isSubmitting,
     isProductLoading,
     isItemModalOpen,
@@ -40,6 +41,8 @@ export default function PurchaseRequestCreate() {
     submitApproval,
   } = usePurchaseRequestCreate()
 
+  const showLoadingOverlay = isInitializing || isProductLoading || isSubmitting
+
   function handleCancel() {
     const shouldLeave = window.confirm(
       "작성 중인 내용이 저장되지 않을 수 있습니다, 취소하시겠습니까?",
@@ -52,10 +55,7 @@ export default function PurchaseRequestCreate() {
 
   return (
     <div className="w-full">
-      <LoadingOverlay
-        show={isProductLoading || isSubmitting}
-        minDuration={1000}
-      />
+      <LoadingOverlay show={showLoadingOverlay} minDuration={1000} />
       <header className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-[22px] font-bold tracking-tight text-slate-900">
@@ -119,6 +119,7 @@ export default function PurchaseRequestCreate() {
           keyword={keyword}
           category={category}
           categoryOptions={categoryOptions}
+          isLoading={isProductLoading}
           onKeywordChange={setKeyword}
           onCategoryChange={setCategory}
           onSearch={searchProducts}

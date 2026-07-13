@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState, useEffect } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/features/auth/context/AuthContext"
 import {
@@ -57,8 +57,10 @@ export default function usePurchaseRequestCreate() {
   const [requestItems, setRequestItems] = useState([])
   const [attachment, setAttachment] = useState(null)
 
+  const [isInitializing, setIsInitializing] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isProductLoading, setIsProductLoading] = useState(true)
+  const [isProductLoading, setIsProductLoading] = useState(false)
+  const productLoadingRef = useRef(false)
   const submittingRef = useRef(false)
 
   const [isItemModalOpen, setIsItemModalOpen] = useState(false)
@@ -70,6 +72,20 @@ export default function usePurchaseRequestCreate() {
   const [appliedCategory, setAppliedCategory] = useState(
     PURCHASE_REQUEST_CATEGORY_ALL,
   )
+
+  useEffect(() => {
+    if (!isAuthReady) {
+      return
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      setIsInitializing(false)
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+    }
+  }, [isAuthReady])
 
   const requesterName = useMemo(() => {
     if (!isAuthReady || !user) {
@@ -95,38 +111,6 @@ export default function usePurchaseRequestCreate() {
     }),
     [form, requesterName, departmentName],
   )
-
-  useEffect(() => {
-    let ignore = false
-
-    async function loadProducts() {
-      setIsProductLoading(true)
-
-      try {
-        const data = await fetchPurchaseRequestProducts()
-
-        if (!ignore) {
-          setProducts(Array.isArray(data) ? data : (data.items ?? []))
-        }
-      } catch (error) {
-        console.error("품목 목록 조회 실패:", error)
-
-        if (!ignore) {
-          window.alert("품목 목록을 불러오지 못했습니다.")
-        }
-      } finally {
-        if (!ignore) {
-          setIsProductLoading(false)
-        }
-      }
-    }
-
-    loadProducts()
-
-    return () => {
-      ignore = true
-    }
-  }, [])
 
   const totalAmount = useMemo(
     () => calculateRequestTotal(requestItems),
@@ -158,9 +142,33 @@ export default function usePurchaseRequestCreate() {
     setAttachment(getValidatedAttachment(event))
   }
 
-  function openItemModal() {
+  async function openItemModal() {
     setDraftSelectedIds(new Set(requestItems.map((item) => item.id)))
     setIsItemModalOpen(true)
+
+    if (products.length > 0 || productLoadingRef.current) {
+      return
+    }
+
+    productLoadingRef.current = true
+    setIsProductLoading(true)
+
+    try {
+      const data = await fetchPurchaseRequestProducts()
+
+      const normalizedProducts = Array.isArray(data)
+        ? data
+        : (data.items ?? data.content ?? [])
+
+      setProducts(normalizedProducts)
+    } catch (error) {
+      console.error("품목 목록 조회 실패:", error)
+
+      window.alert(error.message || "품목 목록을 불러오지 못했습니다.")
+    } finally {
+      productLoadingRef.current = false
+      setIsProductLoading(false)
+    }
   }
 
   function closeItemModal() {
@@ -340,6 +348,7 @@ export default function usePurchaseRequestCreate() {
     attachment,
     requestItems,
     totalAmount,
+    isInitializing,
     isSubmitting,
     isProductLoading,
     isItemModalOpen,

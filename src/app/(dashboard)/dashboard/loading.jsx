@@ -1,5 +1,5 @@
 import LoadingOverlay from "@/components/common/LoadingOverlay"
 
-export default function DashboardLoading() {
-  return <LoadingOverlay minDuration={1000} />
+export default function PurchaseRequestsLoading() {
+  return <LoadingOverlay show minDuration={1000} />
 }

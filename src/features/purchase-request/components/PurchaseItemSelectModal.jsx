@@ -14,6 +14,7 @@ export default function PurchaseItemSelectModal({
   keyword,
   category,
   categoryOptions,
+  isLoading,
   onKeywordChange,
   onCategoryChange,
   onSearch,
@@ -104,7 +105,13 @@ export default function PurchaseItemSelectModal({
             </thead>
 
             <tbody>
-              {products.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="h-32 text-center text-slate-400">
+                    품목 목록을 불러오는 중입니다.
+                  </td>
+                </tr>
+              ) : products.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="h-32 text-center text-slate-400">
                     검색 조건에 해당하는 품목이 없습니다.
@@ -170,9 +177,10 @@ export default function PurchaseItemSelectModal({
             <button
               type="button"
               onClick={onConfirm}
-              className="h-9 rounded-md bg-blue-600 px-3 text-[13px] font-semibold text-white transition hover:bg-blue-700"
+              disabled={isLoading}
+              className="h-9 rounded-md bg-blue-600 px-3 text-[13px] font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
             >
-              선택 완료
+              {isLoading ? "불러오는 중..." : "선택 완료"}
             </button>
           </div>
         </footer>

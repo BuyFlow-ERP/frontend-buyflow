@@ -44,6 +44,8 @@ export default function PurchaseRequestEdit({ requestId }) {
     submitUpdate,
   } = usePurchaseRequestEdit(requestId)
 
+  const showLoadingOverlay = loading || isProductLoading || isSubmitting
+
   function handleCancel() {
     const shouldLeave = window.confirm(
       "수정 중인 내용이 저장되지 않을 수 있습니다. 취소하시겠습니까?",
@@ -52,10 +54,6 @@ export default function PurchaseRequestEdit({ requestId }) {
     if (shouldLeave) {
       router.push(`/purchase-requests/${requestId}`)
     }
-  }
-
-  if (loading) {
-    return <LoadingOverlay minDuration={1000} />
   }
 
   if (error) {
@@ -76,10 +74,7 @@ export default function PurchaseRequestEdit({ requestId }) {
 
   return (
     <div className="w-full">
-      <LoadingOverlay
-        show={isSubmitting || isProductLoading}
-        minDuration={1500}
-      />
+      <LoadingOverlay show={showLoadingOverlay} minDuration={1000} />
       <header className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-[22px] font-bold tracking-tight text-slate-900">
