@@ -35,7 +35,7 @@ const INITIAL_FORM = {
   reason: "",
 }
 
-function normalizeEditItem(item, productMap) {
+function normalizeEditItem(item, productMap = new Map()) {
   const productId = Number(item.productId ?? item.id)
   const product = productMap.get(productId)
 
@@ -77,6 +77,7 @@ export default function usePurchaseRequestEdit(requestId) {
   const [appliedCategory, setAppliedCategory] = useState(
     PURCHASE_REQUEST_CATEGORY_ALL,
   )
+  const [isProductLoading, setIsProductLoading] = useState(false)
 
   useEffect(() => {
     let ignore = false
@@ -86,32 +87,22 @@ export default function usePurchaseRequestEdit(requestId) {
       setError("")
 
       try {
-        const [requestDetail, productList] = await Promise.all([
-          fetchPurchaseRequestDetail(requestId),
-          fetchPurchaseRequestProducts(),
-        ])
+        const requestDetail = await fetchPurchaseRequestDetail(requestId)
 
-        if (ignore) return
+        if (ignore) {
+          return
+        }
 
         if (!EDITABLE_REQUEST_STATUS_LABELS.has(requestDetail.status)) {
           setError(
             `${requestDetail.status} 상태의 구매 요청은 수정할 수 없습니다.`,
           )
           setOriginalRequest(requestDetail)
-          setLoading(false)
           return
         }
 
-        const normalizedProducts = Array.isArray(productList)
-          ? productList
-          : (productList.items ?? [])
-
-        const productMap = new Map(
-          normalizedProducts.map((product) => [Number(product.id), product]),
-        )
-
         setOriginalRequest(requestDetail)
-        setProducts(normalizedProducts)
+
         setForm({
           requestNumber: requestDetail.requestNumber ?? "",
           requester: requestDetail.requester ?? "",
@@ -122,13 +113,14 @@ export default function usePurchaseRequestEdit(requestId) {
           urgency: requestDetail.priority === "긴급" ? "긴급" : "일반",
           reason: requestDetail.reason ?? "",
         })
+
         setRequestItems(
-          (requestDetail.items ?? []).map((item) =>
-            normalizeEditItem(item, productMap),
-          ),
+          (requestDetail.items ?? []).map((item) => normalizeEditItem(item)),
         )
       } catch (loadError) {
         if (!ignore) {
+          console.error("구매 요청 수정 정보 조회 실패:", loadError)
+
           setError(
             loadError.message || "구매 요청 수정 정보를 불러오지 못했습니다.",
           )
@@ -163,7 +155,7 @@ export default function usePurchaseRequestEdit(requestId) {
   )
 
   function updateForm(name, value) {
-    if (LOCKED_FORM_FIELDS.has(name)) {
+    if (LOCKED_PURCHASE_REQUEST_FORM_FIELDS.has(name)) {
       return
     }
 
@@ -177,9 +169,32 @@ export default function usePurchaseRequestEdit(requestId) {
     setAttachment(getValidatedAttachment(event))
   }
 
-  function openItemModal() {
+  async function openItemModal() {
     setDraftSelectedIds(new Set(requestItems.map((item) => item.id)))
-    setIsItemModalOpen(true)
+
+    if (products.length > 0) {
+      setIsItemModalOpen(true)
+      return
+    }
+
+    setIsProductLoading(true)
+
+    try {
+      const productList = await fetchPurchaseRequestProducts()
+
+      const normalizedProducts = Array.isArray(productList)
+        ? productList
+        : (productList.items ?? [])
+
+      setProducts(normalizedProducts)
+      setIsItemModalOpen(true)
+    } catch (productError) {
+      console.error("품목 목록 조회 실패:", productError)
+
+      window.alert(productError.message || "품목 목록을 불러오지 못했습니다.")
+    } finally {
+      setIsProductLoading(false)
+    }
   }
 
   function closeItemModal() {
@@ -348,6 +363,8 @@ export default function usePurchaseRequestEdit(requestId) {
     category,
     categoryOptions,
     filteredProducts,
+    isProductLoading,
+    openItemModal,
     updateForm,
     changeAttachment,
     openItemModal,
